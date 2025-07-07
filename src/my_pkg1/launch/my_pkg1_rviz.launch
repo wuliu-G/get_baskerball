@@ -1,0 +1,19 @@
+<launch>
+  <!-- 启动 filter_by_height.py -->
+  <node name="filter_by_height" pkg="my_pkg1" type="filter_by_height.py" output="screen">
+    <param name="min_z" value="1.745" />
+    <param name="max_z" value="10.8" />
+  </node>
+
+  <!-- 启动 flatten_slice_by_height.py -->
+  <node name="flatten_slice_by_height" pkg="my_pkg1" type="flatten_slice_by_height.py" output="screen">
+    <param name="min_z" value="1.745" />
+    <param name="max_z" value="1.8" />
+  </node>
+
+  <!-- 启动第一个 RViz 配置：recongnize.rviz -->
+  <node name="rviz_recongnize" pkg="rviz" type="rviz" args="-d /home/r2/test_G/src/my_pkg1/rviz/recongnize.rviz" output="screen" />
+
+  <!-- 启动第二个 RViz 配置：result.rviz -->
+  <node name="rviz_result" pkg="rviz" type="rviz" args="-d /home/r2/test_G/src/my_pkg1/rviz/result.rviz" output="screen" />
+</launch>

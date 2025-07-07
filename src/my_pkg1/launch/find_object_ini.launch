@@ -1,0 +1,31 @@
+<launch>
+<!-- 先启动公共 launch（要优先执行） -->
+<include file="$(find livox_ros_driver2)/launch_ROS1/rviz_MID360.launch" />
+ 
+ <!-- 启动 test2.py 订阅全部点云 累积点云 截取高度-->
+ <!-- 观察截取的区域 -->
+ <node name="test3" pkg="my_pkg1" type="test3.py" output="screen" >
+    <param name="min_z" value="1.720" />
+    <param name="max_z" value="1.80" />
+  </node>
+
+  <!-- 启动 test4.py 订阅累积点云，发布发射强度低的点-->
+  <node name="test4" pkg="my_pkg1" type="test4.py" output="screen" >
+    <param name="max_range" value="5" />   <!--搜索范围-->
+  </node>
+
+  <!-- 启动 test5.py 订阅累积点云强度低的点云，发布中心点（目标点）-->
+  <node name="test5" pkg="my_pkg1" type="test5.py" output="screen" >
+  </node>
+
+  <!-- 启动 test6.py 订阅中心点（目标点）发送角度给串口-->
+  <node name="test6" pkg="my_pkg1" type="test6.py" output="screen" >
+  </node>
+
+  <!-- 启动第一个 RViz 配置：recongnize.rviz -->
+  <node name="rviz_recongnize" pkg="rviz" type="rviz" args="-d /home/r2/test_G/src/my_pkg1/rviz/recongnize.rviz" output="screen" />
+
+  <!-- 启动第二个 RViz 配置：result.rviz -->
+  <node name="rviz_result" pkg="rviz" type="rviz" args="-d /home/r2/test_G/src/my_pkg1/rviz/result.rviz" output="screen" />
+
+</launch>
