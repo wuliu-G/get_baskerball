@@ -1,0 +1,10 @@
+<launch>
+  <!-- 启动 test7.py 四元方程求解器 -->
+  <node name="quartic_equation_solver" pkg="my_pkg1" type="test7.py" output="screen">
+    <!-- 可配置的常量参数 -->
+    <param name="H" value="2.0" />
+    <param name="h2" value="1.0" />
+    <param name="L1" value="3.0" />
+    <param name="L2" value="2.5" />
+  </node>
+</launch>

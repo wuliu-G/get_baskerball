@@ -27,7 +27,7 @@ catkin_install_python(PROGRAMS
   scripts/test4.py
   scripts/test5.py
   scripts/test6.py
-
+  scripts/test7.py
   scripts/cam_test1.py
 
   scripts/circle_strong.py
