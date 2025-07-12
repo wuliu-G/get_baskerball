@@ -6,6 +6,7 @@ import serial
 import time
 import threading
 from geometry_msgs.msg import PointStamped
+from std_msgs.msg import Float64
 import glob
 
 def find_usb_serial_port():
@@ -64,7 +65,7 @@ class UARTSenderReceiver:
             return False
         return False # 如果代码运行到这里，说明没有成功打开
 
-    def send_angle_hex(self, angle):
+    def send_angle_hex(self, angle, fire_angle, current_angle):
         if self.ser is None or not self.ser.isOpen():
             rospy.logwarn("[UART] 串口未打开或已关闭，尝试重新连接...")
             if not self.connect_serial(): # 尝试重新连接
@@ -75,9 +76,18 @@ class UARTSenderReceiver:
         dir_x = 0 if angle >= 0 else 1
         angle_value = int(abs(angle))*10  # 度取整数
 
-        # 2. 保留字段（上下方向）
-        dir_y = 0
-        v_y_sub = 0
+        # 2. 上下方向控制
+        # 比较fire_angle和current_angle的大小
+        if fire_angle > current_angle:
+            dir_y = 0
+        else:
+            dir_y = 1
+
+        # v_y_sub = fire_angle * 500
+        v_y_sub = int(abs(fire_angle) * 500)
+
+        rospy.loginfo("[UART] 角度比较: fire_angle=%.6f, current_angle=%.6f, dir_y=%d, v_y_sub=%d",
+                     fire_angle, current_angle, dir_y, v_y_sub)
 
         # 3. 拼接 hex 字符串
         data = ''.join([
@@ -140,8 +150,26 @@ class AngleProcessor:
     def __init__(self):
         rospy.init_node('object_uart_hex_node', anonymous=True)
         self.uart = UARTSenderReceiver()
+        self.fire_angle = 0.0  # 初始化fire_angle变量
+        self.current_angle = 0.0  # 初始化current_angle变量
+
+        # 订阅话题
         rospy.Subscriber("/object", PointStamped, self.callback)
+        rospy.Subscriber("/fire_angle", Float64, self.fire_angle_callback)
+        rospy.Subscriber("/current_angle", Float64, self.current_angle_callback)
         rospy.on_shutdown(self.shutdown_hook)
+
+    def fire_angle_callback(self, msg):
+        """处理/fire_angle话题的回调函数"""
+        self.fire_angle = msg.data
+        rospy.loginfo("接收到fire_angle: %.6f 弧度 (%.2f 度)",
+                     self.fire_angle, math.degrees(self.fire_angle))
+
+    def current_angle_callback(self, msg):
+        """处理/current_angle话题的回调函数"""
+        self.current_angle = msg.data
+        rospy.loginfo("接收到current_angle: %.6f 弧度 (%.2f 度)",
+                     self.current_angle, math.degrees(self.current_angle))
 
     def callback(self, msg):
         x = msg.point.x
@@ -151,7 +179,7 @@ class AngleProcessor:
             return
         angle = math.degrees(math.atan2(x, y))
         rospy.loginfo("偏移角度: %.2f°", angle)
-        self.uart.send_angle_hex(angle)
+        self.uart.send_angle_hex(angle, self.fire_angle, self.current_angle)
 
     def shutdown_hook(self):
         self.uart.close()
